@@ -60,9 +60,10 @@ class Frame {
     }
 
     public getScore(modifier: number): number {
+        console.log(this._nextFrame);
         return (!modifier) ?
             this.getOwnScore() :
-            this.getOwnScore() + this._nextFrame.getNextScore(modifier);
+            this.getOwnScore() + (this._nextFrame ? this._nextFrame.getNextScore(modifier) : 0);
     }
 
     private getOwnScore(): number {
