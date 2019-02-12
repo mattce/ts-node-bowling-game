@@ -36,7 +36,7 @@ class FrameSet {
     }
 
     private createFrame(): Frame {
-        const maxThrows: number = (this._frames && this._frames.length === frameCount) ? 3 : 2;
+        const maxThrows: number = (this._frames && this._frames.length === frameCount - 1) ? 3 : 2;
         return new Frame(maxThrows);
     }
 
