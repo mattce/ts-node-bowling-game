@@ -22,31 +22,35 @@ class App {
     }
 
     public start() {
-        const currentScore = this.FrameSet.getLastFrame().sumOfThrows;
+        const currentScore = this.FrameSet.getLastFrame().sumUpThrows();
         const question = {
             ...this.baseQuestion,
             ...{ choices: App.calculateChoices(currentScore) }
         };
         inquirer
-            .prompt([ question ])
+            .prompt([question])
             .then(({ score }) => {
                 this.FrameSet.applyScore(parseInt(score, 10));
             })
             .then(() => {
                 if (this.FrameSet.isComplete) {
-                    console.log('Frameset is complete');
+                    return Promise.reject('Frameset is complete')
                 }
                 // this.PrintService.print(this.FrameSet.serializeFrames());
                 console.log(this.FrameSet.serializeFrames());
+                return Promise.resolve();
             })
             .then(() => {
                 this.start();
+            })
+            .catch((error) => {
+                console.error(error);
             })
     }
 
     private static calculateChoices(lastCount): string[] {
         const maxCount = pinCount - lastCount;
-        return [ ...Array(maxCount + 1).keys() ].map(v => v + '')
+        return [...Array(maxCount + 1).keys()].map(v => v + '')
     }
 }
 

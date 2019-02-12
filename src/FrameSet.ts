@@ -3,10 +3,6 @@ import { frameCount } from './config';
 
 class FrameSet {
 
-    get frames(): Frame[] {
-        return this._frames;
-    }
-
     get isComplete(): boolean {
         return this._isComplete;
     }
@@ -35,7 +31,7 @@ class FrameSet {
         }
     }
 
-    public serializeFrames() {
+    public serializeFrames(): object[] {
         return this._frames.map((frame) => frame.serialize());
     }
 
@@ -54,9 +50,3 @@ class FrameSet {
 }
 
 export default FrameSet;
-
-/*
-Frameset : 'manages' frames
-- adds frames : extends an array of Frames
-- serializes frames : get an data representation of the collection of Frames
- */

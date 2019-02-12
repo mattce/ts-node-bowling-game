@@ -1,13 +1,8 @@
 import { pinCount } from './config';
-import { log } from "util";
 
 class Frame {
     set nextFrame(value: this) {
         this._nextFrame = value;
-    }
-
-    get sumOfThrows(): number {
-        return this._sumOfThrows;
     }
 
     get throws(): number[] {
@@ -27,17 +22,15 @@ class Frame {
     }
 
     private readonly maxThrows: number;
-    private _nextFrame: this | false;
-    private _sumOfThrows: number;
+    private _nextFrame: any;
     private _throws: number[];
     private _isSpare: boolean;
     private _isStrike: boolean;
     private _isComplete: boolean;
 
-    constructor(maxThrows, nextFrame?) {
+    constructor(maxThrows) {
         this.maxThrows = maxThrows;
-        this._nextFrame = nextFrame;
-        this._sumOfThrows = 0;
+        this._nextFrame = null;
         this._throws = [];
         this._isSpare = false;
         this._isStrike = false;
@@ -45,8 +38,7 @@ class Frame {
     }
 
     public update(count: number): this {
-        this._throws = [ ...this._throws, ...[ count ] ];
-        this._sumOfThrows = this._throws.reduce((acc, value) => acc + value, 0);
+        this._throws = [...this._throws, ...[count]];
         this._isSpare = this.evaluateIfSpare();
         this._isStrike = this.evaluateIfStrike();
         this._isComplete = this.evaluateIfComplete();
@@ -54,11 +46,11 @@ class Frame {
     }
 
     public evaluateIfSpare(): boolean {
-        return (this._throws.length > 1) && (this._sumOfThrows === pinCount);
+        return (this._throws.length > 1) && (this.sumUpThrows() === pinCount);
     }
 
     public evaluateIfStrike(): boolean {
-        return (this.throws.length === 1) && (this._sumOfThrows === pinCount);
+        return (this.throws.length === 1) && (this.sumUpThrows() === pinCount);
     }
 
     public evaluateIfComplete(): boolean {
@@ -67,23 +59,44 @@ class Frame {
             || (this._throws.length === this.maxThrows);
     }
 
-    public getScore(): number {
-        let score = this.sumOfThrows;
-        // const lastScore = this._getFrame(0).sumOfThrows;
-        // console.log(lastScore);
-        // console.log(lastScore);
-        // if (this.isSpare) score += (this._nextThrows[0] || 0);
-        // if (this.isStrike) score += ((this._nextThrows[0] || 0) + (this._nextThrows[1] || 0));
-        return score
+    public getScore(modifier: number): number {
+        return (!modifier) ?
+            this.getOwnScore() :
+            this.getOwnScore() + this._nextFrame.getNextScore(modifier);
+    }
+
+    private getOwnScore(): number {
+        return this.sumUpThrows();
+    }
+
+    private getNextScore(nextScores: number): number {
+        if (nextScores > this._throws.length) {
+            if (this.isStrike) {
+                return this.sumUpThrows() + this._nextFrame.getNextScore(nextScores - 1);
+            }
+            return this.sumUpThrows();
+        }
+        return this.sumUpThrows(nextScores);
+    }
+
+    public sumUpThrows(limit = 0): number {
+        return this._throws.reduce((acc, value, index) => {
+            return (limit > 0) ?
+                acc + (index < limit ? value : 0) :
+                acc + value;
+        }, 0);
     }
 
     public serialize(): object {
+        let modifier = 0;
+        if (this.isSpare) modifier = 1;
+        if (this.isStrike) modifier = 2;
         return {
             throws: this.throws,
             isSpare: this.isSpare,
             isStrike: this.isStrike,
             isComplete: this.isComplete,
-            totalScore: this.getScore()
+            totalScore: this.getScore(modifier)
         }
     }
 
