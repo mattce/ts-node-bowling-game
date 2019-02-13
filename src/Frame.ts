@@ -60,7 +60,6 @@ class Frame {
     }
 
     public getScore(modifier: number): number {
-        console.log(this._nextFrame);
         return (!modifier) ?
             this.getOwnScore() :
             this.getOwnScore() + (this._nextFrame ? this._nextFrame.getNextScore(modifier) : 0);
@@ -72,10 +71,10 @@ class Frame {
 
     private getNextScore(nextScores: number): number {
         if (nextScores > this._throws.length) {
-            if (this.isStrike) {
-                return this.sumUpThrows() + this._nextFrame.getNextScore(nextScores - 1);
-            }
-            return this.sumUpThrows();
+            let ownScore = this.sumUpThrows();
+            let nextScore = 0;
+            if (this.isStrike && this._nextFrame) nextScore = this._nextFrame.getNextScore(nextScores - 1);
+            return ownScore + nextScore;
         }
         return this.sumUpThrows(nextScores);
     }
@@ -97,7 +96,7 @@ class Frame {
             isSpare: this.isSpare,
             isStrike: this.isStrike,
             isComplete: this.isComplete,
-            totalScore: this.getScore(modifier)
+            score: this.getScore(modifier)
         }
     }
 
