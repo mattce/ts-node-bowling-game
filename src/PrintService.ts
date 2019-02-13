@@ -1,76 +1,106 @@
+import { specialThrowCount } from './config';
+
 enum Line {
-    Ctl = '\u250C',
-    Ctr = '\u2510',
-    Cbl = '\u2514',
-    Cbr = '\u2518',
-    Lv = '\u2502',
-    Lh = '\u2500',
-    Tt = '\u252C',
-    Tr = '\u2524',
-    Tb = '\u2534',
-    Tl = '\u251C',
-    P = '\u253C'
+    Ctl = '\u250C', // Corner top left
+    Ctr = '\u2510', // Corner top right
+    Cbl = '\u2514', // Corner bottom left
+    Cbr = '\u2518', // Corner bottom right
+    Lv = '\u2502', // Left vertical
+    Lh = '\u2500', // Left horizontal
+    Tt = '\u252C', // 'T' shape top
+    Tr = '\u2524', // 'T' shape right
+    Tb = '\u2534', // 'T' shape bottom
+    Tl = '\u251C', // 'T' shape left
+    P = '\u253C' // Plus sign
 }
 
 type frame = { throws: number[], isSpare: boolean, isStrike: boolean, isComplete: boolean, score: number };
 type frames = frame[];
 
+const times = (times: number, txt: string): string => {
+    return [...Array(times).keys()].map(() => txt).join('');
+};
+
+const padArrayWith = (source: string[]|number[], length: number, replacement: string) => {
+    return [...Array(length - source.length).fill(replacement), ...source];
+};
+
+const padStringWith = (source: string | number, length: number, replacement: string, stringSource = String(source)) => {
+    return [...Array(length - stringSource.length).fill(replacement), ...stringSource.split('')].join('');
+};
+
 class PrintService {
 
+    private frameCount: number;
+
+    constructor(frameCount) {
+        this.frameCount = frameCount;
+    }
+
     public print(frames) {
-        const completedFrames = frames.filter((frames) => frames.isComplete);
-        // console.log(this.horizontalLineTop(frames));
-        // console.log(this.singleScoreLine(frames));
-        // console.log(this.horizontalLineMiddle(frames));
-        // console.log(this.totalScoreLine(frames));
-        // console.log(this.horizontalLineBottom(frames));
-        console.log(frames);
+        console.log(this.horizontalLineTop(frames));
+        console.log(this.singleScoreLine(frames));
+        console.log(this.horizontalLineMiddle());
+        console.log(this.totalScoreLine(frames));
+        console.log(this.horizontalLineBottom());
     }
 
     private horizontalLineTop(frames: frames): string {
-        return [ ...Array(frames.length) ]
+        return [...Array(this.frameCount)]
             .reduce((acc, value, index) => {
-                const lastFrame = index === frames.length - 1;
-                return acc + Line.Lh + Line.Tt + Line.Lh + (lastFrame ? Line.Ctr : Line.Tt);
+                const lastFrame = index === (frames.length - 1);
+                const hr = times(2, Line.Lh);
+                return acc + hr + Line.Tt + hr + Line.Tt + hr + (lastFrame ? Line.Ctr : Line.Tt);
             }, Line.Ctl);
     }
 
     private singleScoreLine(frames: frames): string {
-        return [ ...Array(frames.length) ]
+        return [...Array(this.frameCount)]
             .reduce((acc, value, index) => {
-                const scores = frames[index].throws.map((_throw) => (!_throw ? '' : _throw));
-                return acc + scores[0] + Line.Lv + scores[1] + Line.Lv;
+                const throws = frames[index].throws;
+                const scores = padArrayWith(throws, specialThrowCount, '');
+                const normalizedThrows = scores.map((_throw) => padStringWith(_throw, 2, ' '));
+                return acc + normalizedThrows.join(Line.Lv) + Line.Lv;
             }, Line.Lv);
     }
 
-    private horizontalLineMiddle(frames: frames): string {
-        return [ ...Array(frames.length) ]
+    private horizontalLineMiddle(): string {
+        return [...Array(this.frameCount)]
             .reduce((acc, value, index, arr) => {
                 const lastFrame = index === arr.length - 1;
-                return acc + Line.Lh + Line.Tb + Line.Lh + (lastFrame ? Line.Tr : Line.P);
+                const hr = times(2, Line.Lh);
+                return acc + times(2, hr + Line.Tb) + hr + (lastFrame ? Line.Tr : Line.P);
             }, Line.Tl);
     }
 
     private totalScoreLine(frames: frames): string {
-        return [ ...Array(frames.length) ]
+        return [...Array(this.frameCount)]
             .reduce((acc, value, index) => {
-                const score = frames[index].score;
-                return acc
-                    + (score < 10 ? ' ' : '')
-                    + score
-                    + (score < 100 ? ' ' : '')
-                    + Line.Lv;
+                const score = padStringWith(frames[index].score, 2, ' ');
+                const spaces = times(3, ' ');
+                return acc + spaces + score + spaces + Line.Lv;
             }, Line.Lv);
     }
 
-    private horizontalLineBottom(frames: object[]): string {
-        return [ ...Array(frames.length) ]
+    private horizontalLineBottom(): string {
+        return [...Array(this.frameCount)]
             .reduce((acc, value, index, arr) => {
                 const lastFrame = index === arr.length - 1;
-                return acc + Line.Lh + Line.Lh + Line.Lh + (lastFrame ? Line.Cbr : Line.Tb);
+                const hr = times(8, Line.Lh);
+                return acc + hr + (lastFrame ? Line.Cbr : Line.Tb);
             }, Line.Cbl);
     }
 
 }
 
 export default PrintService;
+
+
+/*
+┌──┬──┬──┬──┬──┬──┬──┬──┬──┐
+│  │  │10│  │  │10│  │  │10│
+├──┴──┴──┼──┴──┴──┼──┴──┴──┤
+│   30   │   20   │   10   │
+└────────┴────────┴────────┘
+*/
+
