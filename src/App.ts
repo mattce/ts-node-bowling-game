@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 
-import { pinCount } from './config';
+import { pinCount, frameCount } from './config';
 import FrameSet from './FrameSet';
 import PrintService from './PrintService';
 
@@ -12,7 +12,7 @@ class App {
 
     constructor() {
         this.FrameSet = new FrameSet();
-        this.PrintService = new PrintService();
+        this.PrintService = new PrintService(frameCount);
         this.baseQuestion = {
             type: 'list',
             name: 'score',
@@ -33,18 +33,15 @@ class App {
                 this.FrameSet.applyScore(parseInt(score, 10));
             })
             .then(() => {
-                if (this.FrameSet.isComplete) {
-                    return Promise.reject('Frameset is complete')
-                }
-                // this.PrintService.print(this.FrameSet.serializeFrames());
-                console.log(this.FrameSet.serializeFrames());
-                return Promise.resolve();
+                return (this.FrameSet.isComplete) ?
+                    Promise.reject() :
+                    Promise.resolve();
             })
             .then(() => {
                 this.start();
             })
-            .catch((error) => {
-                console.error(error);
+            .catch(() => {
+                this.PrintService.print(this.FrameSet.serializeFrames());
             })
     }
 
