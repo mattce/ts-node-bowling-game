@@ -1,5 +1,5 @@
 import Frame from './Frame';
-import { frameCount } from './config';
+import { frameCount, defaultThrowCount, specialThrowCount } from './config';
 
 class FrameSet {
 
@@ -36,7 +36,9 @@ class FrameSet {
     }
 
     private createFrame(): Frame {
-        const maxThrows: number = (this._frames && this._frames.length === frameCount - 1) ? 3 : 2;
+        const maxThrows: number = (this._frames && this._frames.length === (frameCount - 1)) ?
+            specialThrowCount :
+            defaultThrowCount;
         return new Frame(maxThrows);
     }
 
