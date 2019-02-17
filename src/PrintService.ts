@@ -1,4 +1,5 @@
 import { specialThrowCount } from './config';
+import { times, padArrayWith, padStringWith } from './Utils';
 
 enum Line {
     Ctl = '\u250C', // Corner top left
@@ -16,18 +17,6 @@ enum Line {
 
 type frame = { throws: number[], isSpare: boolean, isStrike: boolean, isComplete: boolean, score: number };
 type frames = frame[];
-
-const times = (times: number, txt: string): string => {
-    return [...Array(times).keys()].map(() => txt).join('');
-};
-
-const padArrayWith = (source: string[]|number[], length: number, replacement: string) => {
-    return [...Array(length - source.length).fill(replacement), ...source];
-};
-
-const padStringWith = (source: string | number, length: number, replacement: string, stringSource = String(source)) => {
-    return [...Array(length - stringSource.length).fill(replacement), ...stringSource.split('')].join('');
-};
 
 class PrintService {
 
