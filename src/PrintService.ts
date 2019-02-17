@@ -15,8 +15,8 @@ enum Line {
     P = '\u253C' // Plus sign
 }
 
-type frame = { throws: number[], isSpare: boolean, isStrike: boolean, isComplete: boolean, score: number };
-type frames = frame[];
+type Frame = { throws: number[], isSpare: boolean, isStrike: boolean, isComplete: boolean, score: number };
+type NormalizedFrame = Frame & { accumulatedScore: number };
 
 class PrintService {
 
@@ -27,14 +27,27 @@ class PrintService {
     }
 
     public print(frames) {
-        console.log(this.horizontalLineTop(frames));
-        console.log(this.singleScoreLine(frames));
+        const normalizedFrames = PrintService.normalizeFrames(frames);
+        console.log(normalizedFrames);
+        console.log(this.horizontalLineTop(normalizedFrames));
+        console.log(this.singleScoreLine(normalizedFrames));
         console.log(this.horizontalLineMiddle());
-        console.log(this.totalScoreLine(frames));
+        console.log(this.totalScoreLine(normalizedFrames));
         console.log(this.horizontalLineBottom());
     }
 
-    private horizontalLineTop(frames: frames): string {
+    static normalizeFrames(frames, index = 0): any[] {
+        if (index === frames.length) { // exit early
+            return frames;
+        }
+        const currentFrame = frames[index];
+        const lastFrame = frames[index - 1];
+        const lastScore = lastFrame ? lastFrame.accumulatedScore : 0;
+        currentFrame.accumulatedScore = lastScore + currentFrame.score;
+        return PrintService.normalizeFrames(frames, ++index);
+    }
+
+    private horizontalLineTop(frames: NormalizedFrame[]): string {
         return [...Array(this.frameCount)]
             .reduce((acc, value, index) => {
                 const lastFrame = index === (frames.length - 1);
@@ -43,7 +56,7 @@ class PrintService {
             }, Line.Ctl);
     }
 
-    private singleScoreLine(frames: frames): string {
+    private singleScoreLine(frames: NormalizedFrame[]): string {
         return [...Array(this.frameCount)]
             .reduce((acc, value, index) => {
                 const throws = frames[index].throws;
@@ -62,10 +75,10 @@ class PrintService {
             }, Line.Tl);
     }
 
-    private totalScoreLine(frames: frames): string {
+    private totalScoreLine(frames: NormalizedFrame[]): string {
         return [...Array(this.frameCount)]
             .reduce((acc, value, index) => {
-                const score = padStringWith(frames[index].score, 2, ' ');
+                const score = padStringWith(frames[index].accumulatedScore, 2, ' ');
                 const spaces = times(3, ' ');
                 return acc + spaces + score + spaces + Line.Lv;
             }, Line.Lv);
